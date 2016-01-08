@@ -11,7 +11,7 @@ NAME = __name__.split('.')[-1] # package name (e.g. 'foo' or 'foo_bar')
                                # please use a all-lowercase valid python
                                # package name
 
-VERSION = '1.3.7' # version of the packaged files, please use the upstream
+VERSION = '1.3.18' # version of the packaged files, please use the upstream
                   # version number
 BUILD = '1' # our package build number, so we can release new builds
              # with fixes for xstatic stuff.
