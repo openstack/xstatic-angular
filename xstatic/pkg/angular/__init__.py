@@ -24,8 +24,8 @@ CLASSIFIERS = []
 KEYWORDS = '%s xstatic' % NAME
 
 # XStatic-* package maintainer:
-MAINTAINER = 'Radomir Dopieralski'
-MAINTAINER_EMAIL = 'openstack@sheep.art.pl'
+MAINTAINER = 'Rob Cresswell'
+MAINTAINER_EMAIL = 'robert.cresswell@outlook.com'
 
 # this refers to the project homepage of the stuff we packaged:
 HOMEPAGE = 'http://angularjs.org'
