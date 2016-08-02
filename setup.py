@@ -6,7 +6,7 @@ long_description = open('README.txt').read()
 
 setup(
     name='XStatic-Angular',
-    summary="""Angular 1.4.10 (XStatic packaging standard)""",
+    summary="""Angular 1.5.8 (XStatic packaging standard)""",
     description=long_description,
     maintainer="Rob Cresswell",
     maintainer_email='robert.cresswell@outlook.com',
