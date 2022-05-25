@@ -1,6 +1,6 @@
 /**
  * @license AngularJS v1.8.2
- * (c) 2010-2020 Google, Inc. http://angularjs.org
+ * (c) 2010-2020 Google LLC. http://angularjs.org
  * License: MIT
  */
 (function(window, angular) {'use strict';
@@ -353,6 +353,17 @@ function concatWithSpace(a,b) {
   return a + ' ' + b;
 }
 
+var helpers = {
+  blockTransitions: function(node, duration) {
+    // we use a negative delay value since it performs blocking
+    // yet it doesn't kill any existing transitions running on the
+    // same element which makes this safe for class-based animations
+    var value = duration ? '-' + duration + 's' : '';
+    applyInlineStyle(node, [TRANSITION_DELAY_PROP, value]);
+    return [TRANSITION_DELAY_PROP, value];
+  }
+};
+
 var $$rAFSchedulerFactory = ['$$rAF', function($$rAF) {
   var queue, cancelFn;
 
@@ -414,8 +425,8 @@ var $$rAFSchedulerFactory = ['$$rAF', function($$rAF) {
  * of the children's parents are currently animating. By default, when an element has an active `enter`, `leave`, or `move`
  * (structural) animation, child elements that also have an active structural animation are not animated.
  *
- * Note that even if `ngAnimateChildren` is set, no child animations will run when the parent element is removed
- * from the DOM (`leave` animation).
+ * Note that even if `ngAnimateChildren` is set, no child animations will run when the parent element is removed from the DOM (`leave` animation).
+ *
  *
  * @param {string} ngAnimateChildren If the value is empty, `true` or `on`,
  *     then child animations are allowed. If the value is `false`, child animations are not allowed.
@@ -500,6 +511,8 @@ var $$AnimateChildrenDirective = ['$interpolate', function($interpolate) {
     }
   };
 }];
+
+/* exported $AnimateCssProvider */
 
 var ANIMATE_TIMER_KEY = '$$animateCss';
 
@@ -838,7 +851,7 @@ var $AnimateCssProvider = ['$animateProvider', /** @this */ function($animatePro
           timings.animationIterationCount = 1;
         }
       }
-      
+
       // if a css animation has no duration we
       // should mark that so that repeated addClass/removeClass calls are skipped
       var hasDuration = allowNoDuration || (timings.transitionDuration > 0 || timings.animationDuration > 0);
@@ -1059,7 +1072,7 @@ var $AnimateCssProvider = ['$animateProvider', /** @this */ function($animatePro
       // that if there is no transition defined then nothing will happen and this will also allow
       // other transitions to be stacked on top of each other without any chopping them out.
       if (isFirst && !options.skipBlocking) {
-        helpers.blockTransitions(node, SAFE_FAST_FORWARD_DURATION_VALUE); 
+        helpers.blockTransitions(node, SAFE_FAST_FORWARD_DURATION_VALUE);
       }
 
       var timings = computeTimings(node, fullClassName, cacheKey, !isStructural);
@@ -2840,6 +2853,64 @@ var $$AnimateQueueProvider = ['$animateProvider', /** @this */ function($animate
   }];
 }];
 
+/** @this */
+var $$AnimateCacheProvider = function() {
+
+  var KEY = '$$ngAnimateParentKey';
+  var parentCounter = 0;
+  var cache = Object.create(null);
+
+  this.$get = [function() {
+    return {
+      cacheKey: function(node, method, addClass, removeClass) {
+        var parentNode = node.parentNode;
+        var parentID = parentNode[KEY] || (parentNode[KEY] = ++parentCounter);
+        var parts = [parentID, method, node.getAttribute('class')];
+        if (addClass) {
+          parts.push(addClass);
+        }
+        if (removeClass) {
+          parts.push(removeClass);
+        }
+        return parts.join(' ');
+      },
+
+      containsCachedAnimationWithoutDuration: function(key) {
+        var entry = cache[key];
+
+        // nothing cached, so go ahead and animate
+        // otherwise it should be a valid animation
+        return (entry && !entry.isValid) || false;
+      },
+
+      flush: function() {
+        cache = Object.create(null);
+      },
+
+      count: function(key) {
+        var entry = cache[key];
+        return entry ? entry.total : 0;
+      },
+
+      get: function(key) {
+        var entry = cache[key];
+        return entry && entry.value;
+      },
+
+      put: function(key, value, isValid) {
+        if (!cache[key]) {
+          cache[key] = { total: 1, value: value, isValid: isValid };
+        } else {
+          cache[key].total++;
+          cache[key].value = value;
+        }
+      }
+    };
+  }];
+};
+
+/* exported $$AnimationProvider */
+
 var $$AnimationProvider = ['$animateProvider', /** @this */ function($animateProvider) {
   var NG_ANIMATE_REF_ATTR = 'ng-animate-ref';
 
@@ -4181,7 +4252,7 @@ angular.module('ngAnimate', [], function initAngularHelpers() {
   isFunction  = angular.isFunction;
   isElement   = angular.isElement;
 })
-  .info({ angularVersion: '"1.8.2"' })
+  .info({ angularVersion: '1.8.2' })
   .directive('ngAnimateSwap', ngAnimateSwapDirective)
 
   .directive('ngAnimateChildren', $$AnimateChildrenDirective)

@@ -1,6 +1,6 @@
 /**
  * @license AngularJS v1.8.2
- * (c) 2010-2020 Google, Inc. http://angularjs.org
+ * (c) 2010-2020 Google LLC. http://angularjs.org
  * License: MIT
  */
 (function(window, angular) {'use strict';
@@ -1269,7 +1269,7 @@ angular.module('ngParseExt', [])
   .config(['$parseProvider', function($parseProvider) {
     $parseProvider.setIdentifierFns(isValidIdentifierStart, isValidIdentifierContinue);
   }])
-  .info({ angularVersion: '"1.8.2"' });
+  .info({ angularVersion: '1.8.2' });
 
 
 })(window, window.angular);

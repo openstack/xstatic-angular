@@ -1,13 +1,39 @@
 /**
  * @license AngularJS v1.8.2
- * (c) 2010-2020 Google, Inc. http://angularjs.org
+ * (c) 2010-2020 Google LLC. http://angularjs.org
  * License: MIT
  */
 
 (function() {'use strict';
-    function isFunction(value) {return typeof value === 'function';};
+    // NOTE:
+    // These functions are copied here from `src/Angular.js`, because they are needed inside the
+    // `angular-loader.js` closure and need to be available before the main `angular.js` script has
+    // been loaded.
+    function isFunction(value) {return typeof value === 'function';}
+    function isDefined(value) {return typeof value !== 'undefined';}
+    function isNumber(value) {return typeof value === 'number';}
+    function isObject(value) {return value !== null && typeof value === 'object';}
+    function isScope(obj) {return obj && obj.$evalAsync && obj.$watch;}
+    function isUndefined(value) {return typeof value === 'undefined';}
+    function isWindow(obj) {return obj && obj.window === obj;}
+    function sliceArgs(args, startIndex) {return Array.prototype.slice.call(args, startIndex || 0);}
+    function toJsonReplacer(key, value) {
+      var val = value;
 
-/* global toDebugString: true */
+      if (typeof key === 'string' && key.charAt(0) === '$' && key.charAt(1) === '$') {
+        val = undefined;
+      } else if (isWindow(value)) {
+        val = '$WINDOW';
+      } else if (value &&  window.document === value) {
+        val = '$DOCUMENT';
+      } else if (isScope(value)) {
+        val = '$SCOPE';
+      }
+
+      return val;
+    }
+
+/* exported toDebugString */
 
 function serializeObject(obj, maxDepth) {
   var seen = [];
@@ -43,6 +69,67 @@ function toDebugString(obj, maxDepth) {
   return obj;
 }
 
+/* exported
+  minErrConfig,
+  errorHandlingConfig,
+  isValidObjectMaxDepth
+*/
+
+var minErrConfig = {
+  objectMaxDepth: 5,
+  urlErrorParamsEnabled: true
+};
+
+/**
+ * @ngdoc function
+ * @name angular.errorHandlingConfig
+ * @module ng
+ * @kind function
+ *
+ * @description
+ * Configure several aspects of error handling in AngularJS if used as a setter or return the
+ * current configuration if used as a getter. The following options are supported:
+ *
+ * - **objectMaxDepth**: The maximum depth to which objects are traversed when stringified for error messages.
+ *
+ * Omitted or undefined options will leave the corresponding configuration values unchanged.
+ *
+ * @param {Object=} config - The configuration object. May only contain the options that need to be
+ *     updated. Supported keys:
+ *
+ * * `objectMaxDepth`  **{Number}** - The max depth for stringifying objects. Setting to a
+ *   non-positive or non-numeric value, removes the max depth limit.
+ *   Default: 5
+ *
+ * * `urlErrorParamsEnabled`  **{Boolean}** - Specifies whether the generated error url will
+ *   contain the parameters of the thrown error. Disabling the parameters can be useful if the
+ *   generated error url is very long.
+ *
+ *   Default: true. When used without argument, it returns the current value.
+ */
+function errorHandlingConfig(config) {
+  if (isObject(config)) {
+    if (isDefined(config.objectMaxDepth)) {
+      minErrConfig.objectMaxDepth = isValidObjectMaxDepth(config.objectMaxDepth) ? config.objectMaxDepth : NaN;
+    }
+    if (isDefined(config.urlErrorParamsEnabled) && isBoolean(config.urlErrorParamsEnabled)) {
+      minErrConfig.urlErrorParamsEnabled = config.urlErrorParamsEnabled;
+    }
+  } else {
+    return minErrConfig;
+  }
+}
+
+/**
+ * @private
+ * @param {Number} maxDepth
+ * @return {boolean}
+ */
+function isValidObjectMaxDepth(maxDepth) {
+  return isNumber(maxDepth) && maxDepth > 0;
+}
+
+
 /**
  * @description
  *
@@ -76,7 +163,7 @@ function toDebugString(obj, maxDepth) {
 function minErr(module, ErrorConstructor) {
   ErrorConstructor = ErrorConstructor || Error;
 
-  var url = 'https://errors.angularjs.org/"1.8.2"/';
+  var url = 'https://errors.angularjs.org/1.8.2/';
   var regex = url.replace('.', '\\.') + '[\\s\\S]*';
   var errRegExp = new RegExp(regex, 'g');
 
@@ -548,3 +635,4 @@ setupModuleLoader(window);
  * } }
  */
 angular.Module;
+

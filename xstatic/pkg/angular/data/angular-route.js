@@ -1,6 +1,6 @@
 /**
  * @license AngularJS v1.8.2
- * (c) 2010-2020 Google, Inc. http://angularjs.org
+ * (c) 2010-2020 Google LLC. http://angularjs.org
  * License: MIT
  */
 (function(window, angular) {'use strict';
@@ -32,6 +32,51 @@ function shallowCopy(src, dst) {
   return dst || src;
 }
 
+/* global routeToRegExp: true */
+
+/**
+ * @param {string} path - The path to parse. (It is assumed to have query and hash stripped off.)
+ * @param {Object} opts - Options.
+ * @return {Object} - An object containing an array of path parameter names (`keys`) and a regular
+ *     expression (`regexp`) that can be used to identify a matching URL and extract the path
+ *     parameter values.
+ *
+ * @description
+ * Parses the given path, extracting path parameter names and a regular expression to match URLs.
+ *
+ * Originally inspired by `pathRexp` in `visionmedia/express/lib/utils.js`.
+ */
+function routeToRegExp(path, opts) {
+  var keys = [];
+
+  var pattern = path
+    .replace(/([().])/g, '\\$1')
+    .replace(/(\/)?:(\w+)(\*\?|[?*])?/g, function(_, slash, key, option) {
+      var optional = option === '?' || option === '*?';
+      var star = option === '*' || option === '*?';
+      keys.push({name: key, optional: optional});
+      slash = slash || '';
+      return (
+        (optional ? '(?:' + slash : slash + '(?:') +
+        (star ? '(.+?)' : '([^/]+)') +
+        (optional ? '?)?' : ')')
+      );
+    })
+    .replace(/([/$*])/g, '\\$1');
+
+  if (opts.ignoreTrailingSlashes) {
+    pattern = pattern.replace(/\/+$/, '') + '/*';
+  }
+
+  return {
+    keys: keys,
+    regexp: new RegExp(
+      '^' + pattern + '(?:[?#]|$)',
+      opts.caseInsensitiveMatch ? 'i' : ''
+    )
+  };
+}
+
 /* global routeToRegExp: false */
 /* global shallowCopy: false */
 
@@ -56,7 +101,7 @@ var noop;
 /* global -ngRouteModule */
 var ngRouteModule = angular.
   module('ngRoute', []).
-  info({ angularVersion: '"1.8.2"' }).
+  info({ angularVersion: '1.8.2' }).
   provider('$route', $RouteProvider).
   // Ensure `$route` will be instantiated in time to capture the initial `$locationChangeSuccess`
   // event (unless explicitly disabled). This is necessary in case `ngView` is included in an

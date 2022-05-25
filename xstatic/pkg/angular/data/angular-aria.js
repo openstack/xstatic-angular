@@ -1,6 +1,6 @@
 /**
  * @license AngularJS v1.8.2
- * (c) 2010-2020 Google, Inc. http://angularjs.org
+ * (c) 2010-2020 Google LLC. http://angularjs.org
  * License: MIT
  */
 (function(window, angular) {'use strict';
@@ -63,7 +63,7 @@
 var ARIA_DISABLE_ATTR = 'ngAriaDisable';
 
 var ngAriaModule = angular.module('ngAria', ['ng']).
-                        info({ angularVersion: '"1.8.2"' }).
+                        info({ angularVersion: '1.8.2' }).
                         provider('$aria', $AriaProvider);
 
 /**
